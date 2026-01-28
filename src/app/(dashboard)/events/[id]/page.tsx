@@ -12,6 +12,7 @@ import { EventTasks } from './tasks'
 import { EventBudget } from './budget'
 import { EventFiles } from './files'
 import { EventMeetings } from './meetings'
+import { EventResearch } from './research'
 
 export default async function EventDetailPage({
   params,
@@ -104,6 +105,7 @@ export default async function EventDetailPage({
           <TabsTrigger value="budget">Budget</TabsTrigger>
           <TabsTrigger value="meetings">Meetings</TabsTrigger>
           <TabsTrigger value="files">Files</TabsTrigger>
+          <TabsTrigger value="research">Research</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -169,6 +171,19 @@ export default async function EventDetailPage({
 
         <TabsContent value="files">
           <EventFiles eventId={id} />
+        </TabsContent>
+
+        <TabsContent value="research">
+          <EventResearch
+            eventId={id}
+            eventContext={{
+              name: event.name,
+              location_city: event.location_city,
+              location_state: event.location_state,
+              start_date: event.start_date,
+              end_date: event.end_date,
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>
