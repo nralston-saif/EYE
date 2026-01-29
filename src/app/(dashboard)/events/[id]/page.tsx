@@ -13,6 +13,7 @@ import { EventBudget } from './budget'
 import { EventFiles } from './files'
 import { EventMeetings } from './meetings'
 import { EventResearch } from './research'
+import { EventSourcing } from './sourcing'
 
 export default async function EventDetailPage({
   params,
@@ -71,12 +72,12 @@ export default async function EventDetailPage({
                 {event.clients.name}
               </Link>
             )}
-            {event.start_date && (
+            {event.event_start_date && (
               <span className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(event.start_date), 'MMM d, yyyy')}
-                {event.end_date && event.start_date !== event.end_date && (
-                  <> - {format(new Date(event.end_date), 'MMM d, yyyy')}</>
+                {format(new Date(event.event_start_date), 'MMM d, yyyy')}
+                {event.event_end_date && event.event_start_date !== event.event_end_date && (
+                  <> - {format(new Date(event.event_end_date), 'MMM d, yyyy')}</>
                 )}
               </span>
             )}
@@ -106,6 +107,7 @@ export default async function EventDetailPage({
           <TabsTrigger value="meetings">Meetings</TabsTrigger>
           <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="research">Research</TabsTrigger>
+          <TabsTrigger value="sourcing">Sourcing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -115,6 +117,38 @@ export default async function EventDetailPage({
                 <CardTitle>Event Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Event Dates</p>
+                    <p className="mt-1">
+                      {event.event_start_date ? (
+                        <>
+                          {format(new Date(event.event_start_date), 'MMM d, yyyy')}
+                          {event.event_end_date && event.event_start_date !== event.event_end_date && (
+                            <> - {format(new Date(event.event_end_date), 'MMM d, yyyy')}</>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">Not set</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Planning Dates</p>
+                    <p className="mt-1">
+                      {event.start_date ? (
+                        <>
+                          {format(new Date(event.start_date), 'MMM d, yyyy')}
+                          {event.end_date && event.start_date !== event.end_date && (
+                            <> - {format(new Date(event.end_date), 'MMM d, yyyy')}</>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">Not set</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
                 {event.description && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Description</p>
@@ -126,9 +160,6 @@ export default async function EventDetailPage({
                     <p className="text-sm font-medium text-muted-foreground">Notes</p>
                     <p className="mt-1 whitespace-pre-wrap">{event.notes}</p>
                   </div>
-                )}
-                {!event.description && !event.notes && (
-                  <p className="text-muted-foreground">No additional details</p>
                 )}
               </CardContent>
             </Card>
@@ -184,6 +215,10 @@ export default async function EventDetailPage({
               end_date: event.end_date,
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="sourcing">
+          <EventSourcing eventId={id} />
         </TabsContent>
       </Tabs>
     </div>

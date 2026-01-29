@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Clients', href: '/clients', icon: Building2 },
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Contractors', href: '/contractors', icon: HardHat },
+  { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'Calendar', href: '/calendar', icon: Calendar },
 ]
 

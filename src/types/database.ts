@@ -297,6 +297,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           end_date: string | null
+          event_end_date: string | null
+          event_start_date: string | null
           event_type: string | null
           id: string
           location_address: string | null
@@ -314,6 +316,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           end_date?: string | null
+          event_end_date?: string | null
+          event_start_date?: string | null
           event_type?: string | null
           id?: string
           location_address?: string | null
@@ -331,6 +335,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           end_date?: string | null
+          event_end_date?: string | null
+          event_start_date?: string | null
           event_type?: string | null
           id?: string
           location_address?: string | null
@@ -438,6 +444,186 @@ export type Database = {
         }
         Relationships: []
       }
+      research_results: {
+        Row: {
+          id: string
+          event_id: string | null
+          query: string
+          category: string | null
+          results: Json
+          sources: string[] | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id?: string | null
+          query: string
+          category?: string | null
+          results?: Json
+          sources?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string | null
+          query?: string
+          category?: string | null
+          results?: Json
+          sources?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      document_templates: {
+        Row: {
+          id: string
+          name: string
+          type: 'rfp' | 'sow' | 'msa' | 'contract'
+          description: string | null
+          content: string
+          variables: Json
+          user_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          type: 'rfp' | 'sow' | 'msa' | 'contract'
+          description?: string | null
+          content?: string
+          variables?: Json
+          user_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          type?: 'rfp' | 'sow' | 'msa' | 'contract'
+          description?: string | null
+          content?: string
+          variables?: Json
+          user_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      generated_documents: {
+        Row: {
+          id: string
+          template_id: string | null
+          event_id: string | null
+          client_id: string | null
+          name: string
+          type: 'rfp' | 'sow' | 'msa' | 'contract'
+          content: string
+          variable_values: Json
+          status: 'draft' | 'final' | 'sent' | 'signed'
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          template_id?: string | null
+          event_id?: string | null
+          client_id?: string | null
+          name: string
+          type: 'rfp' | 'sow' | 'msa' | 'contract'
+          content?: string
+          variable_values?: Json
+          status?: 'draft' | 'final' | 'sent' | 'signed'
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          template_id?: string | null
+          event_id?: string | null
+          client_id?: string | null
+          name?: string
+          type?: 'rfp' | 'sow' | 'msa' | 'contract'
+          content?: string
+          variable_values?: Json
+          status?: 'draft' | 'final' | 'sent' | 'signed'
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sourced_vendors: {
+        Row: {
+          id: string
+          event_id: string
+          research_result_id: string | null
+          name: string
+          category: string | null
+          website: string | null
+          phone: string | null
+          address: string | null
+          price_range: string | null
+          capacity: string | null
+          status: 'identified' | 'contacted' | 'rfp_sent' | 'proposal_received' | 'negotiating' | 'selected' | 'contracted' | 'declined'
+          priority: number | null
+          notes: string | null
+          quoted_price: number | null
+          final_price: number | null
+          rfp_sent_date: string | null
+          proposal_due_date: string | null
+          proposal_received_date: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          research_result_id?: string | null
+          name: string
+          category?: string | null
+          website?: string | null
+          phone?: string | null
+          address?: string | null
+          price_range?: string | null
+          capacity?: string | null
+          status?: 'identified' | 'contacted' | 'rfp_sent' | 'proposal_received' | 'negotiating' | 'selected' | 'contracted' | 'declined'
+          priority?: number | null
+          notes?: string | null
+          quoted_price?: number | null
+          final_price?: number | null
+          rfp_sent_date?: string | null
+          proposal_due_date?: string | null
+          proposal_received_date?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          research_result_id?: string | null
+          name?: string
+          category?: string | null
+          website?: string | null
+          phone?: string | null
+          address?: string | null
+          price_range?: string | null
+          capacity?: string | null
+          status?: 'identified' | 'contacted' | 'rfp_sent' | 'proposal_received' | 'negotiating' | 'selected' | 'contracted' | 'declined'
+          priority?: number | null
+          notes?: string | null
+          quoted_price?: number | null
+          final_price?: number | null
+          rfp_sent_date?: string | null
+          proposal_due_date?: string | null
+          proposal_received_date?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -470,3 +656,26 @@ export type BudgetItem = Tables<'budget_items'>
 export type Meeting = Tables<'meetings'>
 export type EventFile = Tables<'event_files'>
 export type EventContractor = Tables<'event_contractors'>
+export type ResearchResult = Tables<'research_results'>
+export type DocumentTemplate = Tables<'document_templates'>
+export type GeneratedDocument = Tables<'generated_documents'>
+export type SourcedVendor = Tables<'sourced_vendors'>
+
+// Template variable definition type
+export type TemplateVariable = {
+  name: string
+  label: string
+  type: 'text' | 'textarea' | 'number' | 'date' | 'select'
+  required: boolean
+  defaultValue?: string
+  options?: string[] // for select type
+}
+
+// Vendor status type for sourcing pipeline
+export type VendorStatus = 'identified' | 'contacted' | 'rfp_sent' | 'proposal_received' | 'negotiating' | 'selected' | 'contracted' | 'declined'
+
+// Document type
+export type DocumentType = 'rfp' | 'sow' | 'msa' | 'contract'
+
+// Document status
+export type DocumentStatus = 'draft' | 'final' | 'sent' | 'signed'
