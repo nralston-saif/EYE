@@ -170,6 +170,7 @@ export default function GenerateDocumentPage({
     const renderedContent = renderTemplate(template.content, values)
     const selectedEvent = events.find((e) => e.id === selectedEventId)
 
+    // Save to generated_documents table
     const { data, error } = await supabase
       .from('generated_documents')
       .insert({
@@ -188,11 +189,44 @@ export default function GenerateDocumentPage({
     if (error) {
       toast.error('Failed to save document')
       console.error(error)
-    } else {
-      toast.success('Document saved')
-      // Could redirect to a document view page if we had one
-      router.push('/templates')
+      setSaving(false)
+      return
     }
+
+    // If event is selected, also save to event files
+    if (selectedEventId) {
+      const fileName = `${documentName.replace(/[^a-z0-9]/gi, '_')}.txt`
+      const storagePath = `${selectedEventId}/${Date.now()}-${fileName}`
+      const fileBlob = new Blob([renderedContent], { type: 'text/plain' })
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('event-files')
+        .upload(storagePath, fileBlob)
+
+      if (!uploadError) {
+        // Map document type to file category
+        const categoryMap: Record<string, string> = {
+          rfp: 'proposal',
+          sow: 'contract',
+          msa: 'contract',
+          contract: 'contract',
+        }
+
+        // Create event_files record
+        await supabase.from('event_files').insert({
+          event_id: selectedEventId,
+          file_name: fileName,
+          file_type: 'text/plain',
+          file_size: fileBlob.size,
+          storage_path: storagePath,
+          category: categoryMap[template.type] || 'general',
+        })
+      }
+    }
+
+    toast.success('Document saved' + (selectedEventId ? ' and added to event files' : ''))
+    router.push(selectedEventId ? `/events/${selectedEventId}` : '/templates')
 
     setSaving(false)
   }
