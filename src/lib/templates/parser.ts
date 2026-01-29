@@ -82,6 +82,10 @@ export function formatVariableLabel(name: string): string {
 function inferVariableType(name: string): TemplateVariable['type'] {
   const lowerName = name.toLowerCase()
 
+  // Check for "range" first - these should be text, not number
+  if (lowerName.includes('range')) {
+    return 'text'
+  }
   if (lowerName.includes('date')) {
     return 'date'
   }

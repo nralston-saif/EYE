@@ -37,6 +37,8 @@ export default function NewEventPage() {
       client_id: formData.get('client_id') as string || null,
       event_type: formData.get('event_type') as string || null,
       status: formData.get('status') as string || 'planning',
+      event_start_date: formData.get('event_start_date') as string || null,
+      event_end_date: formData.get('event_end_date') as string || null,
       start_date: formData.get('start_date') as string || null,
       end_date: formData.get('end_date') as string || null,
       location_name: formData.get('location_name') as string || null,
@@ -127,6 +129,7 @@ export default function NewEventPage() {
                       <SelectItem value="planning">Planning</SelectItem>
                       <SelectItem value="confirmed">Confirmed</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="on_hold">On Hold</SelectItem>
                     </SelectContent>
                   </Select>
@@ -135,11 +138,22 @@ export default function NewEventPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date</Label>
+                  <Label htmlFor="event_start_date">Event Start Date</Label>
+                  <Input id="event_start_date" name="event_start_date" type="date" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="event_end_date">Event End Date</Label>
+                  <Input id="event_end_date" name="event_end_date" type="date" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start_date">Planning Start Date</Label>
                   <Input id="start_date" name="start_date" type="date" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date</Label>
+                  <Label htmlFor="end_date">Planning End Date</Label>
                   <Input id="end_date" name="end_date" type="date" />
                 </div>
               </div>
