@@ -4,13 +4,18 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { toast } from 'sonner'
-import { Search, Loader2, ExternalLink, MapPin, Phone, DollarSign, Users, Trash2, Sparkles } from 'lucide-react'
+import { Search, Loader2, ExternalLink, MapPin, Phone, DollarSign, Users, Trash2, Sparkles, Save } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface EventResearchProps {
@@ -72,7 +77,10 @@ export function EventResearch({ eventId, eventContext }: EventResearchProps) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('general')
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [savedResearch, setSavedResearch] = useState<SavedResearch[]>([])
+  const [currentQuery, setCurrentQuery] = useState('')
+  const [currentCategory, setCurrentCategory] = useState('general')
   const [currentResults, setCurrentResults] = useState<{
     summary?: string
     results?: ResearchResult[]
@@ -121,9 +129,9 @@ export function EventResearch({ eventId, eventContext }: EventResearchProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
-          eventId,
           category,
           eventContext: contextStr,
+          // Don't pass eventId - we'll save manually
         }),
       })
 
@@ -134,13 +142,41 @@ export function EventResearch({ eventId, eventContext }: EventResearchProps) {
       }
 
       setCurrentResults(data.data)
+      setCurrentQuery(query)
+      setCurrentCategory(category)
       toast.success('Research complete')
-      fetchSavedResearch()
     } catch (error) {
       console.error('Research error:', error)
       toast.error('Failed to perform research')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveResearch = async () => {
+    if (!currentResults || !currentQuery) return
+
+    setSaving(true)
+    try {
+      const { error } = await (supabase as any).from('research_results').insert({
+        event_id: eventId,
+        query: currentQuery,
+        category: currentCategory,
+        results: currentResults,
+        sources: currentResults.sources || [],
+      })
+
+      if (error) throw error
+
+      toast.success('Research saved')
+      setCurrentResults(null)
+      setCurrentQuery('')
+      fetchSavedResearch()
+    } catch (error) {
+      console.error('Save error:', error)
+      toast.error('Failed to save research')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -157,80 +193,79 @@ export function EventResearch({ eventId, eventContext }: EventResearchProps) {
       toast.error('Failed to delete')
       return
     }
+    toast.success('Research deleted')
     fetchSavedResearch()
   }
 
   const ResultCard = ({ result }: { result: ResearchResult }) => (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="pt-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h4 className="font-semibold">{result.name}</h4>
-              {result.type && (
-                <Badge variant="secondary" className="text-xs">
-                  {result.type}
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
-              {result.address && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {result.address}
-                </span>
-              )}
-              {result.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  {result.phone}
-                </span>
-              )}
-              {result.priceRange && (
-                <span className="flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
-                  {result.priceRange}
-                </span>
-              )}
-              {result.capacity && (
-                <span className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {result.capacity}
-                </span>
-              )}
-            </div>
-
-            {result.highlights && result.highlights.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {result.highlights.map((h, i) => (
-                  <Badge key={i} variant="outline" className="text-xs">
-                    {h}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {result.notes && (
-              <p className="text-sm text-muted-foreground mt-2">{result.notes}</p>
+    <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold">{result.name}</h4>
+            {result.type && (
+              <Badge variant="secondary" className="text-xs">
+                {result.type}
+              </Badge>
             )}
           </div>
 
-          {result.website && (
-            <a
-              href={result.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-shrink-0"
-            >
-              <Button variant="outline" size="sm">
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </a>
+          <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
+            {result.address && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {result.address}
+              </span>
+            )}
+            {result.phone && (
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3" />
+                {result.phone}
+              </span>
+            )}
+            {result.priceRange && (
+              <span className="flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                {result.priceRange}
+              </span>
+            )}
+            {result.capacity && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {result.capacity}
+              </span>
+            )}
+          </div>
+
+          {result.highlights && result.highlights.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {result.highlights.map((h, i) => (
+                <Badge key={i} variant="outline" className="text-xs">
+                  {h}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {result.notes && (
+            <p className="text-sm text-muted-foreground mt-2">{result.notes}</p>
           )}
         </div>
-      </CardContent>
-    </Card>
+
+        {result.website && (
+          <a
+            href={result.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0"
+          >
+            <Button variant="outline" size="sm">
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          </a>
+        )}
+      </div>
+    </div>
   )
 
   return (
@@ -325,82 +360,106 @@ export function EventResearch({ eventId, eventContext }: EventResearchProps) {
               <div className="pt-4 border-t">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Sources:</p>
                 <div className="flex flex-wrap gap-2">
-                  {currentResults.sources.map((source, i) => (
-                    <a
-                      key={i}
-                      href={source}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline"
-                    >
-                      {new URL(source).hostname}
-                    </a>
-                  ))}
+                  {currentResults.sources.map((source, i) => {
+                    try {
+                      return (
+                        <a
+                          key={i}
+                          href={source}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          {new URL(source).hostname}
+                        </a>
+                      )
+                    } catch {
+                      return null
+                    }
+                  })}
                 </div>
               </div>
             )}
+
+            {/* Save Button */}
+            <div className="pt-4 border-t">
+              <Button onClick={handleSaveResearch} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save to Event
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Saved Research */}
+      {/* Saved Research - Accordion */}
       {savedResearch.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Previous Research</h3>
-          {savedResearch.map((research) => (
-            <Card key={research.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-base">{research.query}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline">{research.category}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(research.created_at), 'MMM d, yyyy h:mm a')}
-                      </span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteResearch(research.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {research.results.summary && (
-                  <p className="text-sm text-muted-foreground mb-3">{research.results.summary}</p>
-                )}
-                {research.results.results && research.results.results.length > 0 && (
-                  <div className="grid gap-3">
-                    {research.results.results.slice(0, 3).map((result, i) => (
-                      <div key={i} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                        <div>
-                          <p className="font-medium text-sm">{result.name}</p>
-                          {result.address && (
-                            <p className="text-xs text-muted-foreground">{result.address}</p>
-                          )}
-                        </div>
-                        {result.website && (
-                          <a href={result.website} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                          </a>
+          <h3 className="text-lg font-semibold">Saved Research</h3>
+          <Accordion type="single" collapsible className="space-y-2">
+            {savedResearch.map((research) => (
+              <AccordionItem
+                key={research.id}
+                value={research.id}
+                className="border rounded-lg px-4"
+              >
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="flex-1">
+                      <p className="font-medium">{research.query}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {research.category}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(research.created_at), 'MMM d, yyyy')}
+                        </span>
+                        {research.results.results && (
+                          <span className="text-xs text-muted-foreground">
+                            ({research.results.results.length} results)
+                          </span>
                         )}
                       </div>
-                    ))}
-                    {research.results.results.length > 3 && (
-                      <p className="text-xs text-muted-foreground">
-                        +{research.results.results.length - 3} more results
-                      </p>
-                    )}
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pt-4 space-y-4">
+                    {research.results.summary && (
+                      <p className="text-sm text-muted-foreground">{research.results.summary}</p>
+                    )}
+                    {research.results.results && research.results.results.length > 0 && (
+                      <div className="grid gap-3">
+                        {research.results.results.map((result, i) => (
+                          <ResultCard key={i} result={result} />
+                        ))}
+                      </div>
+                    )}
+                    <div className="pt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteResearch(research.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       )}
 
@@ -409,7 +468,7 @@ export function EventResearch({ eventId, eventContext }: EventResearchProps) {
           <CardContent className="py-8 text-center text-muted-foreground">
             <Sparkles className="h-8 w-8 mx-auto mb-3 text-muted-foreground/50" />
             <p>Use the AI assistant to research hotels, venues, vendors, and more.</p>
-            <p className="text-sm mt-1">Results are saved to this event for future reference.</p>
+            <p className="text-sm mt-1">Click "Save to Event" to keep results for future reference.</p>
           </CardContent>
         </Card>
       )}

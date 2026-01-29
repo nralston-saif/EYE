@@ -65,7 +65,7 @@ Always return valid JSON. If you can't find specific information, omit that fiel
       max_tokens: 4096,
       tools: [
         {
-          type: 'web_search' as any,
+          type: 'web_search_20250305' as any,
           name: 'web_search',
         }
       ],
@@ -129,10 +129,11 @@ Always return valid JSON. If you can't find specific information, omit that fiel
       success: true,
       data: parsedResults,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Research API error:', error)
+    const errorMessage = error?.message || 'Failed to perform research'
     return NextResponse.json(
-      { error: 'Failed to perform research' },
+      { error: errorMessage },
       { status: 500 }
     )
   }

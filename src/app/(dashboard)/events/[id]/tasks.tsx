@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { Plus, Calendar } from 'lucide-react'
+import { Plus, Calendar, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Task, Contractor } from '@/types/database'
 
@@ -86,6 +86,21 @@ export function EventTasks({ eventId }: EventTasksProps) {
       return
     }
 
+    fetchTasks()
+  }
+
+  const handleDeleteTask = async (taskId: string) => {
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId)
+
+    if (error) {
+      toast.error('Failed to delete task')
+      return
+    }
+
+    toast.success('Task deleted')
     fetchTasks()
   }
 
@@ -224,6 +239,14 @@ export function EventTasks({ eventId }: EventTasksProps) {
                         )}
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteTask(task.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </CardContent>
@@ -251,6 +274,14 @@ export function EventTasks({ eventId }: EventTasksProps) {
                     <div className="flex-1">
                       <p className="font-medium line-through">{task.title}</p>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteTask(task.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </CardContent>

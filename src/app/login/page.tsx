@@ -8,6 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+const ALLOWED_EMAILS = [
+  'nick@saif.vc',
+  'shannon@empoweryourevent.com',
+]
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -21,6 +26,13 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    // Check if email is allowed for signup
+    if (mode === 'signup' && !ALLOWED_EMAILS.includes(email.toLowerCase())) {
+      setError('Signups are restricted to authorized users only.')
+      setLoading(false)
+      return
+    }
 
     try {
       if (mode === 'login') {
