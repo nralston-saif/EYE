@@ -112,6 +112,15 @@ const CATEGORIES = [
   'Other',
 ]
 
+interface ContactOption {
+  id: string
+  first_name: string
+  last_name: string
+  email: string | null
+  phone: string | null
+  client_name: string | null
+}
+
 export function EventSourcing({ eventId }: EventSourcingProps) {
   const supabase = createClient()
   const [vendors, setVendors] = useState<SourcedVendor[]>([])
@@ -122,6 +131,7 @@ export function EventSourcing({ eventId }: EventSourcingProps) {
   const [savedResearch, setSavedResearch] = useState<SavedResearch[]>([])
   const [selectedResearchId, setSelectedResearchId] = useState<string>('')
   const [exporting, setExporting] = useState(false)
+  const [contacts, setContacts] = useState<ContactOption[]>([])
 
   // Form state
   const [formData, setFormData] = useState({
@@ -145,7 +155,39 @@ export function EventSourcing({ eventId }: EventSourcingProps) {
   useEffect(() => {
     fetchVendors()
     fetchResearch()
+    fetchContacts()
   }, [eventId])
+
+  const fetchContacts = async () => {
+    const { data } = await supabase
+      .from('contacts')
+      .select('id, first_name, last_name, email, phone, clients(name)')
+      .order('last_name', { ascending: true })
+
+    if (data) {
+      setContacts(
+        data.map((c: any) => ({
+          id: c.id,
+          first_name: c.first_name,
+          last_name: c.last_name,
+          email: c.email,
+          phone: c.phone,
+          client_name: c.clients?.name || null,
+        }))
+      )
+    }
+  }
+
+  const handleFillFromContact = (contactId: string) => {
+    const contact = contacts.find((c) => c.id === contactId)
+    if (!contact) return
+    setFormData({
+      ...formData,
+      name: `${contact.first_name} ${contact.last_name}`,
+      phone: contact.phone || formData.phone,
+      website: contact.email || formData.website,
+    })
+  }
 
   const fetchVendors = async () => {
     setLoading(true)
@@ -471,6 +513,24 @@ export function EventSourcing({ eventId }: EventSourcingProps) {
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                {contacts.length > 0 && (
+                  <div className="space-y-2 pb-2 border-b">
+                    <Label className="text-muted-foreground">Fill from Contact</Label>
+                    <Select onValueChange={handleFillFromContact}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a contact to auto-fill..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contacts.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.first_name} {c.last_name}
+                            {c.client_name ? ` (${c.client_name})` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Vendor Name *</Label>

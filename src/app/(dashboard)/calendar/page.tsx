@@ -30,10 +30,10 @@ export default async function CalendarPage({
       .order('start_time', { ascending: true }),
     supabase
       .from('events')
-      .select('id, name, start_date, end_date, status, clients(name)')
-      .or(`start_date.gte.${monthStart.toISOString().split('T')[0]},end_date.gte.${monthStart.toISOString().split('T')[0]}`)
-      .lte('start_date', monthEnd.toISOString().split('T')[0])
-      .order('start_date', { ascending: true }),
+      .select('id, name, event_start_date, event_end_date, status, clients(name)')
+      .or(`event_start_date.gte.${monthStart.toISOString().split('T')[0]},event_end_date.gte.${monthStart.toISOString().split('T')[0]}`)
+      .lte('event_start_date', monthEnd.toISOString().split('T')[0])
+      .order('event_start_date', { ascending: true }),
   ])
 
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
@@ -55,6 +55,22 @@ export default async function CalendarPage({
     const date = format(new Date(meeting.start_time), 'yyyy-MM-dd')
     if (!acc[date]) acc[date] = []
     acc[date].push(meeting)
+    return acc
+  }, {})
+
+  // Build events-by-date map covering full date ranges
+  const eventsByDate = (events || []).reduce((acc: any, event: any) => {
+    const start = event.event_start_date
+    const end = event.event_end_date || start
+    if (!start) return acc
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    const rangeDays = eachDayOfInterval({ start: startDate, end: endDate })
+    for (const day of rangeDays) {
+      const dateKey = format(day, 'yyyy-MM-dd')
+      if (!acc[dateKey]) acc[dateKey] = []
+      acc[dateKey].push(event)
+    }
     return acc
   }, {})
 
@@ -97,9 +113,7 @@ export default async function CalendarPage({
                 {days.map((day) => {
                   const dateKey = format(day, 'yyyy-MM-dd')
                   const dayMeetings = meetingsByDate[dateKey] || []
-                  const hasEvents = events?.some(
-                    (e: any) => e.start_date === dateKey || e.end_date === dateKey
-                  )
+                  const dayEvents = eventsByDate[dateKey] || []
 
                   return (
                     <div
@@ -123,13 +137,20 @@ export default async function CalendarPage({
                             {format(new Date(meeting.start_time), 'h:mm a')} - {meeting.title}
                           </div>
                         ))}
-                        {dayMeetings.length > 2 && (
+                        {dayEvents.slice(0, 2).map((event: any) => (
+                          <Link
+                            key={event.id}
+                            href={`/events/${event.id}`}
+                            className="text-xs p-1 rounded bg-blue-100 text-blue-800 truncate block hover:bg-blue-200"
+                            title={`${event.name}${event.clients?.name ? ` - ${event.clients.name}` : ''}`}
+                          >
+                            {event.name}{event.clients?.name ? ` · ${event.clients.name}` : ''}
+                          </Link>
+                        ))}
+                        {(dayMeetings.length + dayEvents.length) > 2 && (dayMeetings.length > 2 || dayEvents.length > 2) && (
                           <p className="text-xs text-muted-foreground">
-                            +{dayMeetings.length - 2} more
+                            +{Math.max(0, dayMeetings.length - 2) + Math.max(0, dayEvents.length - 2)} more
                           </p>
-                        )}
-                        {hasEvents && dayMeetings.length === 0 && (
-                          <div className="w-2 h-2 rounded-full bg-blue-500" title="Event" />
                         )}
                       </div>
                     </div>
@@ -216,9 +237,9 @@ export default async function CalendarPage({
                           <p className="text-xs text-muted-foreground">{event.clients.name}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          {event.start_date && format(new Date(event.start_date), 'MMM d')}
-                          {event.end_date && event.start_date !== event.end_date && (
-                            <> - {format(new Date(event.end_date), 'MMM d')}</>
+                          {event.event_start_date && format(new Date(event.event_start_date), 'MMM d')}
+                          {event.event_end_date && event.event_start_date !== event.event_end_date && (
+                            <> - {format(new Date(event.event_end_date), 'MMM d')}</>
                           )}
                         </p>
                       </div>

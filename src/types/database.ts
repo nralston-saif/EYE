@@ -444,6 +444,48 @@ export type Database = {
         }
         Relationships: []
       }
+      run_of_show_items: {
+        Row: {
+          id: string
+          event_id: string
+          sub_event_id: string | null
+          time: string
+          activity: string
+          location: string | null
+          person_responsible: string | null
+          notes: string | null
+          sort_order: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          sub_event_id?: string | null
+          time: string
+          activity: string
+          location?: string | null
+          person_responsible?: string | null
+          notes?: string | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          sub_event_id?: string | null
+          time?: string
+          activity?: string
+          location?: string | null
+          person_responsible?: string | null
+          notes?: string | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       research_results: {
         Row: {
           id: string
@@ -555,6 +597,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_events: {
+        Row: {
+          id: string
+          event_id: string
+          name: string
+          date: string | null
+          start_time: string | null
+          end_time: string | null
+          location: string | null
+          description: string | null
+          sort_order: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          name: string
+          date?: string | null
+          start_time?: string | null
+          end_time?: string | null
+          location?: string | null
+          description?: string | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          name?: string
+          date?: string | null
+          start_time?: string | null
+          end_time?: string | null
+          location?: string | null
+          description?: string | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sourced_vendors: {
         Row: {
           id: string
@@ -659,6 +743,8 @@ export type EventContractor = Tables<'event_contractors'>
 export type ResearchResult = Tables<'research_results'>
 export type DocumentTemplate = Tables<'document_templates'>
 export type GeneratedDocument = Tables<'generated_documents'>
+export type SubEvent = Tables<'sub_events'>
+export type RunOfShowItem = Tables<'run_of_show_items'>
 export type SourcedVendor = Tables<'sourced_vendors'>
 
 // Template variable definition type

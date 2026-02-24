@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Building2, HardHat, CheckSquare } from 'lucide-react'
 import Link from 'next/link'
-import { format, isAfter, isBefore, addDays } from 'date-fns'
+import { format, differenceInDays } from 'date-fns'
+import { formatEventType, formatStatus } from '@/lib/utils'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -16,9 +17,10 @@ export default async function DashboardPage() {
     supabase.from('contractors').select('id', { count: 'exact' }),
     supabase.from('tasks').select('id, status').eq('status', 'pending'),
     supabase.from('events')
-      .select('id, name, start_date, end_date, status, event_type, clients(name)')
-      .gte('start_date', new Date().toISOString().split('T')[0])
-      .order('start_date', { ascending: true })
+      .select('id, name, event_start_date, event_end_date, status, event_type, clients(name)')
+      .gte('event_start_date', new Date().toISOString().split('T')[0])
+      .not('status', 'in', '("completed","cancelled")')
+      .order('event_start_date', { ascending: true })
       .limit(5),
   ])
 
@@ -27,6 +29,26 @@ export default async function DashboardPage() {
   const totalContractors = contractorsRes.count || 0
   const pendingTasks = tasksRes.data?.length || 0
   const upcomingEvents = upcomingEventsRes.data || []
+
+  // Fetch tasks for upcoming events to show completion %
+  const upcomingIds = upcomingEvents.map((e: any) => e.id)
+  const { data: upcomingTasks } = upcomingIds.length > 0
+    ? await supabase.from('tasks').select('id, event_id, status').in('event_id', upcomingIds)
+    : { data: [] }
+
+  const tasksByEvent: Record<string, any[]> = {}
+  for (const task of upcomingTasks || []) {
+    if (!task.event_id) continue
+    if (!tasksByEvent[task.event_id]) tasksByEvent[task.event_id] = []
+    tasksByEvent[task.event_id].push(task)
+  }
+
+  const getCompletionPercent = (eventId: string) => {
+    const tasks = tasksByEvent[eventId] || []
+    if (tasks.length === 0) return null
+    const completed = tasks.filter((t: any) => t.status === 'completed').length
+    return Math.round((completed / tasks.length) * 100)
+  }
 
   const stats = [
     { name: 'Active Events', value: activeEvents, icon: Calendar, href: '/events' },
@@ -43,11 +65,6 @@ export default async function DashboardPage() {
       case 'on_hold': return 'bg-orange-100 text-orange-800'
       default: return 'bg-gray-100 text-gray-800'
     }
-  }
-
-  const formatEventType = (type: string | null) => {
-    if (!type) return ''
-    return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
   return (
@@ -94,21 +111,34 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{event.name}</h3>
                       <Badge variant="outline" className={getStatusColor(event.status)}>
-                        {event.status}
+                        {formatStatus(event.status)}
                       </Badge>
+                      {event.event_start_date && (() => {
+                        const days = differenceInDays(new Date(event.event_start_date), new Date())
+                        return (
+                          <Badge variant="secondary" className="text-xs">
+                            {days === 0 ? 'Today' : days > 0 ? `In ${days} days` : `${Math.abs(days)} days ago`}
+                          </Badge>
+                        )
+                      })()}
                     </div>
                     <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                       {event.clients?.name && <span>{event.clients.name}</span>}
                       {event.event_type && <span>{formatEventType(event.event_type)}</span>}
+                      {(() => {
+                        const pct = getCompletionPercent(event.id)
+                        if (pct === null) return null
+                        return <span>{pct}% complete</span>
+                      })()}
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      {event.start_date ? format(new Date(event.start_date), 'MMM d, yyyy') : 'TBD'}
+                      {event.event_start_date ? format(new Date(event.event_start_date), 'MMM d, yyyy') : 'TBD'}
                     </p>
-                    {event.end_date && event.start_date !== event.end_date && (
+                    {event.event_end_date && event.event_start_date !== event.event_end_date && (
                       <p className="text-sm text-muted-foreground">
-                        to {format(new Date(event.end_date), 'MMM d, yyyy')}
+                        to {format(new Date(event.event_end_date), 'MMM d, yyyy')}
                       </p>
                     )}
                   </div>

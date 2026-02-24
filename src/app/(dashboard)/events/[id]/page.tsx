@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { Header } from '@/components/layout/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -14,6 +13,9 @@ import { EventFiles } from './files'
 import { EventMeetings } from './meetings'
 import { EventResearch } from './research'
 import { EventSourcing } from './sourcing'
+import { SubEvents } from './sub-events'
+import { RunOfShow } from './run-of-show'
+import { formatEventType, formatStatus } from '@/lib/utils'
 
 export default async function EventDetailPage({
   params,
@@ -47,10 +49,15 @@ export default async function EventDetailPage({
     }
   }
 
-  const formatEventType = (type: string | null) => {
-    if (!type) return ''
-    return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  }
+  // Fetch tasks for completion %
+  const { data: eventTasks } = await supabase
+    .from('tasks')
+    .select('id, status')
+    .eq('event_id', id)
+
+  const totalTasks = eventTasks?.length || 0
+  const completedTasks = eventTasks?.filter((t: any) => t.status === 'completed').length || 0
+  const completionPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : null
 
   return (
     <div>
@@ -59,10 +66,21 @@ export default async function EventDetailPage({
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-2xl font-bold tracking-tight">{event.name}</h1>
             <Badge variant="outline" className={getStatusColor(event.status)}>
-              {event.status?.replace(/_/g, ' ')}
+              {formatStatus(event.status)}
             </Badge>
             {event.event_type && (
               <Badge variant="secondary">{formatEventType(event.event_type)}</Badge>
+            )}
+            {completionPercent !== null && (
+              <div className="flex items-center gap-2">
+                <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${completionPercent}%` }}
+                  />
+                </div>
+                <span className="text-sm text-muted-foreground">{completionPercent}%</span>
+              </div>
             )}
           </div>
           <div className="flex items-center gap-4 text-muted-foreground">
@@ -102,12 +120,14 @@ export default async function EventDetailPage({
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="sub-events">Sub-Events</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="run-of-show">Run of Show</TabsTrigger>
           <TabsTrigger value="budget">Budget</TabsTrigger>
           <TabsTrigger value="meetings">Meetings</TabsTrigger>
           <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="research">Research</TabsTrigger>
-          <TabsTrigger value="sourcing">Sourcing</TabsTrigger>
+          <TabsTrigger value="sourcing">Vendors/Sourcing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -215,6 +235,14 @@ export default async function EventDetailPage({
               end_date: event.end_date,
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="sub-events">
+          <SubEvents eventId={id} />
+        </TabsContent>
+
+        <TabsContent value="run-of-show">
+          <RunOfShow eventId={id} />
         </TabsContent>
 
         <TabsContent value="sourcing">
