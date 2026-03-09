@@ -128,7 +128,17 @@ export default async function DashboardPage() {
                       {(() => {
                         const pct = getCompletionPercent(event.id)
                         if (pct === null) return null
-                        return <span>{pct}% complete</span>
+                        return (
+                          <span className="flex items-center gap-2">
+                            <span className="inline-block w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <span
+                                className="block h-full bg-primary rounded-full transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </span>
+                            {pct}% complete
+                          </span>
+                        )
                       })()}
                     </div>
                   </div>

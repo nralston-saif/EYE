@@ -440,7 +440,7 @@ export function EventSourcing({ eventId }: EventSourcingProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Vendor Sourcing</h2>
+          <h2 className="text-lg font-semibold">Vendors/Sourcing</h2>
           <p className="text-sm text-muted-foreground">
             Track and manage vendors for this event
           </p>
