@@ -17,12 +17,14 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Sparkles,
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Events', href: '/events', icon: Calendar },
+  { name: 'Sourcing', href: '/sourcing', icon: Sparkles },
   { name: 'Clients', href: '/clients', icon: Building2 },
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Contractors', href: '/contractors', icon: HardHat },

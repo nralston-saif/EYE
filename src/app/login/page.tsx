@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const ALLOWED_EMAILS = [
   'nick@saif.vc',
   'shannon@empoweryourevent.com',
+  'addymilhollin@gmail.com',
 ]
 
 export default function LoginPage() {

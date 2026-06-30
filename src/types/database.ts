@@ -444,6 +444,57 @@ export type Database = {
         }
         Relationships: []
       }
+      task_notes: {
+        Row: {
+          id: string
+          task_id: string
+          content: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          content: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          content?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      task_files: {
+        Row: {
+          id: string
+          task_id: string
+          file_name: string
+          file_type: string | null
+          file_size: number | null
+          storage_path: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          file_name: string
+          file_type?: string | null
+          file_size?: number | null
+          storage_path: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          file_name?: string
+          file_type?: string | null
+          file_size?: number | null
+          storage_path?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       run_of_show_items: {
         Row: {
           id: string
@@ -746,6 +797,8 @@ export type GeneratedDocument = Tables<'generated_documents'>
 export type SubEvent = Tables<'sub_events'>
 export type RunOfShowItem = Tables<'run_of_show_items'>
 export type SourcedVendor = Tables<'sourced_vendors'>
+export type TaskNote = Tables<'task_notes'>
+export type TaskFile = Tables<'task_files'>
 
 // Template variable definition type
 export type TemplateVariable = {
