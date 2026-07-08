@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+// Web-search research calls routinely exceed Vercel's default function timeout
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
     const supabase = await createClient()
 
     // Check authentication
@@ -59,32 +61,15 @@ Always return valid JSON. If you can't find specific information, omit that fiel
       ? `Research request: ${query}\n\nEvent context: ${eventContext}`
       : query
 
-    // Call Claude with web search
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
-      tools: [
-        {
-          type: 'web_search_20250305' as any,
-          name: 'web_search',
-        }
-      ],
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt,
-        }
-      ],
-      system: systemPrompt,
+    // Call OpenAI with web search
+    const response = await openai.responses.create({
+      model: 'gpt-5-mini',
+      instructions: systemPrompt,
+      input: userPrompt,
+      tools: [{ type: 'web_search' }],
     })
 
-    // Extract the text response
-    let textContent = ''
-    for (const block of response.content) {
-      if (block.type === 'text') {
-        textContent += block.text
-      }
-    }
+    const textContent = response.output_text
 
     // Try to parse as JSON
     let parsedResults
