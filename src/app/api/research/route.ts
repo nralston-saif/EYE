@@ -3,7 +3,7 @@ import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 
 // Web-search research calls routinely exceed Vercel's default function timeout
-export const maxDuration = 60
+export const maxDuration = 300
 
 export async function POST(request: NextRequest) {
   try {
