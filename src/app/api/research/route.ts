@@ -63,7 +63,7 @@ Always return valid JSON. If you can't find specific information, omit that fiel
 
     // Call OpenAI with web search
     const response = await openai.responses.create({
-      model: 'gpt-5.5',
+      model: 'gpt-5.4-mini',
       instructions: systemPrompt,
       input: userPrompt,
       tools: [{ type: 'web_search' }],
